@@ -9,16 +9,16 @@ LABEL_DISTANCE = 150
 INPUT_DISTANCE = 250
 
 
-class ViewAllEmp:
+class ViewAllAdmin:
     def __init__(self, conn):
         self.window = tkinter.Tk()
-        self.window.title("All Employees")
+        self.window.title("All Admins")
         self.window.geometry("1000x500")
         self.window.resizable(height=False, width=False)
         self.window.configure(background=DEFAULT_COLOR)
         self.conn = conn
 
-        self.title = self.add_title("All Employees", 400, 50, ("bold", 20))
+        self.title = self.add_title("All Admins", 400, 50, ("bold", 20))
         self.tree = self.add_treeview(15)
         self.tree.place(y=100)
         self.button1 = self.add_button("View Menu", 400, 450)
@@ -37,7 +37,7 @@ class ViewAllEmp:
         cur = self.conn.cursor()
         cur.execute("DROP VIEW IF EXISTS employee_view;")
         cur.execute("CREATE VIEW employee_view AS " +
-                    "SELECT ename, ephone, egender, eaddress, eemail FROM employee;")
+                    "SELECT aname, aphone, agender, aaddress, aemail FROM admin;")
         # cur.execute("COMMIT;")
 
     def add_treeview(self, height):
@@ -45,7 +45,7 @@ class ViewAllEmp:
         emp_tree = ttk.Treeview(self.window, columns=("c1", "c2", "c3", "c4", "c5"), show="headings",
                                 height=height, selectmode="browse")
         emp_tree.column("#1", anchor=tkinter.CENTER, stretch=tkinter.NO, width=183)
-        emp_tree.heading("#1", text="Employee Name")
+        emp_tree.heading("#1", text="Admin Name")
         emp_tree.column("#2", anchor=tkinter.CENTER, stretch=tkinter.NO, width=150)
         emp_tree.heading("#2", text="Phone")
         emp_tree.column("#3", anchor=tkinter.CENTER, stretch=tkinter.NO, width=100)
@@ -76,6 +76,6 @@ class ViewAllEmp:
 
 if __name__ == "__main__":
     db = sqlite3.connect("F:\Programs\DBMS_Project\pharmacy.sqlite")
-    form = ViewAllEmp(db)
+    form = ViewAllAdmin(db)
     form.run()
     db.close()
