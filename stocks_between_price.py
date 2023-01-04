@@ -116,6 +116,6 @@ class StocksBetweenPrice:
 
 if __name__ == "__main__":
     db = sqlite3.connect("pharmacy.sqlite")
-    form = StocksBetweenPrice(db, "temp")
+    form = StocksBetweenPrice(db, "admin")
     form.run()
     db.close()

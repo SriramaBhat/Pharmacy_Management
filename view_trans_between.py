@@ -51,7 +51,8 @@ class ViewStocks:
         d2 = self.end.get().strip().split("/")
         d2 = str(d2[2]) + "-" + str(d2[1]) + "-" + str(d2[0])
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM stransactions UNION SELECT * FROM ctransactions " +
+        cur.execute("SELECT * FROM stransactions WHERE  tran_date BETWEEN '" + d1 + "' AND '" + d2 +
+                    "' UNION SELECT * FROM ctransactions " +
                     "WHERE tran_date BETWEEN '" + d1 + "' AND '" + d2 + "' ;")
 
     def add_treeview(self, height):
