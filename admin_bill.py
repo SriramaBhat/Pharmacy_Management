@@ -106,7 +106,7 @@ class AdminBill:
         c.setFont("Times-Bold", 5)
         c.drawRightString(90, 70, "Bill Id: " + self.file_name)
         c.drawRightString(40, 80, "Date :")
-        cur = db.cursor()
+        cur = self.conn.cursor()
         date = cur.execute("SELECT tran_date FROM ctransactions WHERE ctrans_name='" + str(self.file_name)
                            + "' UNION SELECT tran_date FROM stransactions WHERE strans_name='" +
                            str(self.file_name) + "';").fetchone()

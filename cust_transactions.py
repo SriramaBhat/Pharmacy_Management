@@ -1,3 +1,4 @@
+import sqlite3
 import tkinter
 
 LIGHT_GREY = "#F5F5F5"
@@ -8,7 +9,7 @@ INPUT_DISTANCE = 350
 
 
 class CustTransactions:
-    def __init__(self):
+    def __init__(self, conn):
         self.values = []
 
         self.window = tkinter.Tk()
@@ -17,6 +18,7 @@ class CustTransactions:
         self.window.resizable(width=False, height=False)
         self.window.configure(background=DEFAULT_COLOR)
         self.v = tkinter.IntVar()
+        self.conn = conn
 
         self.add_title("Customer Transaction Form", 230, 30, ("bold", 20))
         self.add_title("Customer Name: ", LABEL_DISTANCE, 100, DEFAULT_FONT)
@@ -40,9 +42,8 @@ class CustTransactions:
 
         self.button1 = self.add_button("Submit", 100, 400)
         self.button2 = self.add_button("View Stocks", 300, 400)
-        self.button3 = self.add_button("Search Medicine", 500, 400)
-        self.button4 = self.add_button("Logout", 175, 450)
-        self.button5 = self.add_button("Generate Bill", 375, 450)
+        self.button4 = self.add_button("Logout", 275, 450)
+        self.button3 = self.add_button("Generate Bill", 500, 400)
 
     def add_title(self, message, x_pos, y_pos, fonts):
         title = tkinter.Label(self.window, text=message, font=fonts, justify=tkinter.CENTER, background=DEFAULT_COLOR)
@@ -67,5 +68,7 @@ class CustTransactions:
 
 
 if __name__ == "__main__":
-    form = CustTransactions()
+    db = sqlite3.connect("pharmacy.sqlite")
+    form = CustTransactions(db)
     form.run()
+    db.close()

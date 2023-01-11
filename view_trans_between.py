@@ -10,7 +10,7 @@ LABEL_DISTANCE = 150
 INPUT_DISTANCE = 250
 
 
-class ViewStocks:
+class ViewTrans:
     def __init__(self, conn):
         self.window = tkinter.Tk()
         self.window.title("View Transactions")
@@ -97,6 +97,6 @@ class ViewStocks:
 
 if __name__ == "__main__":
     db = sqlite3.connect("pharmacy.sqlite")
-    form = ViewStocks(db)
+    form = ViewTrans(db)
     form.run()
     db.close()

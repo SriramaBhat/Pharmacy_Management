@@ -1,3 +1,4 @@
+import sqlite3
 import tkinter
 
 LIGHT_GREY = "#F5F5F5"
@@ -8,7 +9,7 @@ INPUT_DISTANCE = 350
 
 
 class DistTransactions:
-    def __init__(self):
+    def __init__(self, conn):
         self.values = []
 
         self.window = tkinter.Tk()
@@ -17,6 +18,7 @@ class DistTransactions:
         self.window.resizable(width=False, height=False)
         self.window.configure(background=DEFAULT_COLOR)
         self.v = tkinter.IntVar()
+        self.conn = conn
 
         self.add_title("Distributer Transaction Form", 230, 30, ("bold", 20))
         self.add_title("Email: ", LABEL_DISTANCE, 100, DEFAULT_FONT)
@@ -40,13 +42,12 @@ class DistTransactions:
         self.button2 = self.add_button("View Stocks", 220, 425)
         self.button3 = self.add_button("Add Medicine", 390, 425)
         self.button4 = self.add_button("View Employees", 560, 425)
-        self.button5 = self.add_button("Logout", 100, 525)
+        self.button5 = self.add_button("Logout", 200, 525)
         self.button6 = self.add_button("View Transactions", 50, 475)
         self.button7 = self.add_button("Add Admin", 220, 475)
         self.button8 = self.add_button("Delete Employee", 390, 475)
         self.button9 = self.add_button("Add Distributor", 560, 475)
-        self.button10 = self.add_button("Analysis", 300, 525)
-        self.button11 = self.add_button("Search medicine", 500, 525)
+        self.button11 = self.add_button("Generate Bill", 400, 525)
 
     def add_title(self, message, x_pos, y_pos, fonts):
         title = tkinter.Label(self.window, text=message, font=fonts, justify=tkinter.CENTER, background=DEFAULT_COLOR)
@@ -71,5 +72,7 @@ class DistTransactions:
 
 
 if __name__ == "__main__":
-    form = DistTransactions()
+    db = sqlite3.connect("pharmacy.sqlite")
+    form = DistTransactions(db)
     form.run()
+    db.close()

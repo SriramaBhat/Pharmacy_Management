@@ -8,10 +8,13 @@ import cust_transactions
 import dist_transactions
 import medicine_form
 import admin_addition
+import view_trans_between
 import emp_delete
 import view_stocks
 import supp_add
 import employee_view
+import admin_bill
+import employee_bill
 
 
 def logout(trans):
@@ -32,9 +35,9 @@ def admin_med_configure(med):
     med.button3.configure(command=partial(admin_trans1, med))
 
 
-def dist_trans_configure(admin, dbase):
+def dist_trans_configure(admin):
     admin.button1.configure(command=partial(dist_tran_submit, admin))
-    admin.button2.configure(command=partial(stock_view, admin, "admin", dbase))
+    admin.button2.configure(command=partial(stock_view, admin, "admin", admin.conn))
     admin.button3.configure(command=partial(admin_med_form, admin))
     admin.button4.configure(command=partial(view_employees, admin))
     admin.button5.configure(command=partial(logout, admin))
@@ -42,7 +45,6 @@ def dist_trans_configure(admin, dbase):
     admin.button7.configure(command=partial(add_admin, admin))
     admin.button8.configure(command=partial(emp_del, admin))
     admin.button9.configure(command=partial(add_dist, admin))
-    admin.button10.configure(command=partial(analyze, admin))
     admin.button11.configure(command=partial(generate_admin_bill, admin))
 
 
@@ -74,13 +76,9 @@ def emp_del(admin):
 
 def admin_trans1(med):
     med.destruct()
-    admin = dist_transactions.DistTransactions()
-    dist_trans_configure(admin, db)
+    admin = dist_transactions.DistTransactions(med.conn)
+    dist_trans_configure(admin)
     admin.run()
-
-
-def analyze(admin):
-    pass
 
 
 def submit_admin(admin_add):
@@ -121,7 +119,7 @@ def dist_tran_submit(admin):
         med_names_values = []
         for i in med_names:
             med_names_values.append(i.split("/"))
-        cur = db.cursor()
+        cur = admin.conn.cursor()
         sid = cur.execute("SELECT dist_id FROM distributors WHERE dist_email = '" + dist_email + "';").fetchone()[0]
         if not sid:
             tkinter.messagebox.showerror("Error", "Supplier does not exist")
@@ -136,15 +134,16 @@ def dist_tran_submit(admin):
                     try:
                         cur.execute("UPDATE stocks SET qty = qty + " + str(qty_values[i]) + ", expdate = '" +
                                     str(date_values[i]) + "' WHERE sid = " + str(stock_id.fetchone()[0]) + " ;")
+                        unit_price = cur.execute("SELECT dist_unit_price FROM stocks WHERE syid = (SELECT " +
+                                                 "mid FROM syrups WHERE mname LIKE '%" + str(med_names_values[i][0]) +
+                                                 "%');").fetchone()[0]
+                        cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
+                                    "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
+                                    + str(unit_price) + ", " + str(qty_values[i]) +
+                                    " * " + str(unit_price) + ");")
                     except Exception:
                         tkinter.messagebox.showerror("Error", "The expiry date cannot be the given value")
-                    unit_price = cur.execute("SELECT dist_unit_price FROM stocks WHERE syid = (SELECT " +
-                                             "mid FROM syrups WHERE mname LIKE '%" + str(med_names_values[i][0]) +
-                                             "%');").fetchone()[0]
-                    cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
-                                "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
-                                + str(unit_price) + ", " + str(qty_values[i]) +
-                                " * " + str(unit_price) + ");")
+                        cur.execute("DROP TABLE " + table_name + ";")
                     cur.execute("COMMIT;")
                 else:
                     stock_id = cur.execute("SELECT sid FROM stocks WHERE tid = (SELECT " +
@@ -152,21 +151,24 @@ def dist_tran_submit(admin):
                     try:
                         cur.execute("UPDATE stocks SET qty = qty + " + str(qty_values[i]) + ", expdate = '" +
                                     str(date_values[i]) + "' WHERE sid = " + str(stock_id.fetchone()[0]) + " ;")
+                        unit_price = cur.execute("SELECT dist_unit_price FROM stocks WHERE tid = (SELECT " +
+                                                 "mid FROM tablets WHERE mname LIKE '%" +
+                                                 str(med_names_values[i][0]) + "%');").fetchone()[0]
+                        cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
+                                    "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
+                                    + str(unit_price) + ", " + str(qty_values[i]) +
+                                    " * " + str(unit_price) + ");")
                     except Exception:
                         tkinter.messagebox.showerror("Error", "The expiry date cannot be the given value")
-                    unit_price = cur.execute("SELECT dist_unit_price FROM stocks WHERE tid = (SELECT " +
-                                             "mid FROM tablets WHERE mname LIKE '%" +
-                                             str(med_names_values[i][0]) + "%');").fetchone()[0]
-                    cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
-                                "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
-                                + str(unit_price) + ", " + str(qty_values[i]) +
-                                " * " + str(unit_price) + ");")
+                        cur.execute("DROP TABLE " + table_name + ";")
                     cur.execute("COMMIT;")
-            total_amt = cur.execute("SELECT SUM(price) FROM " + table_name + ";").fetchone()[0]
-            cur.execute("INSERT INTO stransactions (sid, strans_name, tran_date, tran_time, total_amt) VALUES " +
-                        "(" + str(sid) + ", '" + table_name + "', '" + pr_date + "', '" + pr_time + "', "
-                        + str(total_amt) + ");")
-            cur.execute("COMMIT;")
+            try:
+                total_amt = cur.execute("SELECT SUM(price) FROM " + table_name + ";").fetchone()[0]
+                cur.execute("INSERT INTO stransactions (sid, strans_name, tran_date, tran_time, total_amt) VALUES " +
+                            "(" + str(sid) + ", '" + table_name + "', '" + pr_date + "', '" + pr_time + "', "
+                            + str(total_amt) + ");")
+            except:
+                cur.execute("COMMIT;")
             admin_trans1(admin)
 
 
@@ -209,7 +211,7 @@ def stock_view(window, emp_type, dbase):
 
 def emp_trans1(stock_summary):
     stock_summary.destruct()
-    emp = cust_transactions.CustTransactions()
+    emp = cust_transactions.CustTransactions(db)
     cust_trans_configure(emp, db)
     emp.run()
 
@@ -222,7 +224,12 @@ def view_employees(admin):
 
 
 def view_trans_range(admin):
-    pass
+    dbase = admin.conn
+    admin.destruct()
+    trans = view_trans_between.ViewTrans(dbase)
+    trans.run()
+    trans.button1.configure(command=partial(admin_trans1, trans))
+    trans.button2.configure(command=partial(logout, trans))
 
 
 def add_admin(admin):
@@ -262,15 +269,16 @@ def cust_tran_submit(employee):
                 try:
                     cur.execute("UPDATE stocks SET qty = qty - " + str(qty_values[i]) +
                                 " WHERE sid = " + str(stock_id.fetchone()[0]) + " ;")
+                    unit_price = cur.execute("SELECT cust_unit_price FROM stocks WHERE syid = (SELECT " +
+                                             "mid FROM syrups WHERE mname LIKE '%" + str(med_names_values[i][0]) +
+                                             "%');").fetchone()[0]
+                    cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
+                                "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
+                                + str(unit_price) + ", " + str(qty_values[i]) +
+                                " * " + str(unit_price) + ");")
                 except Exception:
                     tkinter.messagebox.showerror("Error", "Insufficient stocks")
-                unit_price = cur.execute("SELECT cust_unit_price FROM stocks WHERE syid = (SELECT " +
-                                         "mid FROM syrups WHERE mname LIKE '%" + str(med_names_values[i][0]) +
-                                         "%');").fetchone()[0]
-                cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
-                            "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
-                            + str(unit_price) + ", " + str(qty_values[i]) +
-                            " * " + str(unit_price) + ");")
+                    cur.execute("DROP TABLE " + table_name + ";")
                 cur.execute("COMMIT;")
             else:
                 stock_id = cur.execute("SELECT sid FROM stocks WHERE tid = (SELECT " +
@@ -278,21 +286,24 @@ def cust_tran_submit(employee):
                 try:
                     cur.execute("UPDATE stocks SET qty = qty - " + str(qty_values[i]) +
                                 " WHERE sid = " + str(stock_id.fetchone()[0]) + " ;")
+                    unit_price = cur.execute("SELECT cust_unit_price FROM stocks WHERE tid = (SELECT " +
+                                             "mid FROM tablets WHERE mname LIKE '%" +
+                                             str(med_names_values[i][0]) + "%');").fetchone()[0]
+                    cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
+                                "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
+                                + str(unit_price) + ", " + str(qty_values[i]) +
+                                " * " + str(unit_price) + ");")
                 except Exception:
                     tkinter.messagebox.showerror("Error", "Insufficient stocks")
-                unit_price = cur.execute("SELECT cust_unit_price FROM stocks WHERE tid = (SELECT " +
-                                         "mid FROM tablets WHERE mname LIKE '%" +
-                                         str(med_names_values[i][0]) + "%');").fetchone()[0]
-                cur.execute("INSERT INTO " + table_name + " (mname, qty, upr, price) VALUES " +
-                            "('" + str(med_names_values[i][0]) + "', " + str(qty_values[i]) + ", "
-                            + str(unit_price) + ", " + str(qty_values[i]) +
-                            " * " + str(unit_price) + ");")
+                    cur.execute("DROP TABLE " + table_name + ";")
                 cur.execute("COMMIT;")
-        total_amt = cur.execute("SELECT SUM(price) FROM " + table_name + ";").fetchone()[0]
-        cur.execute("INSERT INTO ctransactions (cid, ctrans_name, tran_date, tran_time, total_amt) VALUES " +
-                    "(" + str(cid) + ", '" + table_name + "', '" + pr_date + "', '" + pr_time + "', "
-                    + str(total_amt) + ");")
-        cur.execute("COMMIT;")
+        try:
+            total_amt = cur.execute("SELECT SUM(price) FROM " + table_name + ";").fetchone()[0]
+            cur.execute("INSERT INTO ctransactions (cid, ctrans_name, tran_date, tran_time, total_amt) VALUES " +
+                        "(" + str(cid) + ", '" + table_name + "', '" + pr_date + "', '" + pr_time + "', "
+                        + str(total_amt) + ");")
+        except Exception:
+            cur.execute("COMMIT;")
         emp_trans1(employee)
 
 
@@ -358,8 +369,8 @@ def admin_trans(login):
         tkinter.messagebox.showerror("Error", "Invalid password!!")
     else:
         login.destruct()
-        adm = dist_transactions.DistTransactions()
-        dist_trans_configure(adm, db)
+        adm = dist_transactions.DistTransactions(db)
+        dist_trans_configure(adm)
         adm.run()
 
 
@@ -374,7 +385,7 @@ def employee_trans(login):
         tkinter.messagebox.showerror("Error", "Invalid password!!")
     else:
         login.destruct()
-        emp = cust_transactions.CustTransactions()
+        emp = cust_transactions.CustTransactions(db)
         cust_trans_configure(emp, db)
         emp.run()
 
@@ -448,11 +459,19 @@ def user_signup(login):
 
 
 def generate_admin_bill(admin):
-    pass
+    admin.destruct()
+    bill = admin_bill.AdminBill(db)
+    bill.button1.configure(command=partial(admin_trans1, bill))
+    bill.button2.configure(command=partial(logout, bill))
+    bill.run()
 
 
 def generate_emp_bill(emp):
-    pass
+    emp.destruct()
+    bill = employee_bill.EmployeeBill(db)
+    bill.button1.configure(command=partial(emp_trans1, bill))
+    bill.button2.configure(command=partial(logout, bill))
+    bill.run()
 
 
 if __name__ == "__main__":

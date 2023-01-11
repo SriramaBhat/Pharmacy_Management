@@ -34,4 +34,4 @@ if __name__ == "__main__":
     print(db.execute("SELECT tablets.mname, stocks.qty, stocks.cust_unit_price, stocks.expdate " +
                      "FROM tablets, stocks WHERE" +
                      " tablets.mid = stocks.tid AND stocks.cust_unit_price >= " +
-                     "(SELECT AVG(cust_unit_price) FROM stocks);"))
+                     "(SELECT AVG(cust_unit_price) FROM stocks, tablets WHERE stocks.tid = tablets.mid);"))
