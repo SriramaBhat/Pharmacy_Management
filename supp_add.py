@@ -8,7 +8,8 @@ INPUT_DISTANCE = 300
 
 
 class DistEntry:
-    def __init__(self):
+    def __init__(self, conn):
+        self.conn = conn
         self.values = []
 
         self.window = tkinter.Tk()

@@ -8,7 +8,8 @@ INPUT_DISTANCE = 250
 
 
 class AdminAddition:
-    def __init__(self):
+    def __init__(self, conn):
+        self.conn = conn
         self.window = tkinter.Tk()
         self.window.title("Add Admin")
         self.window.geometry("600x400")

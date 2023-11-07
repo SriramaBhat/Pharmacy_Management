@@ -1,4 +1,6 @@
 import tkinter
+import sqlite3
+import main_logic
 
 LIGHT_GREY = "#F5F5F5"
 DEFAULT_COLOR = "light green"
@@ -8,7 +10,8 @@ INPUT_DISTANCE = 250
 
 
 class EmpDeletion:
-    def __init__(self):
+    def __init__(self, conn):
+        self.conn = conn
         self.window = tkinter.Tk()
         self.window.title("Delete Employee")
         self.window.geometry("600x400")
@@ -47,7 +50,8 @@ class EmpDeletion:
     def destruct(self):
         self.window.destroy()
 
-
 if __name__ == "__main__":
-    form = EmpDeletion()
+    db = sqlite3.connect("pharmacy.sqlite")
+    form = EmpDeletion(db)
     form.run()
+    db.close()

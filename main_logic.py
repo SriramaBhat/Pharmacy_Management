@@ -69,7 +69,7 @@ def delete_configure(employee_del):
 
 def emp_del(admin):
     admin.destruct()
-    employee_del = emp_delete.EmpDeletion()
+    employee_del = emp_delete.EmpDeletion(admin.conn)
     delete_configure(employee_del)
     employee_del.run()
 
@@ -191,7 +191,7 @@ def add_dist_submit(supp):
 
 def add_dist(admin):
     admin.destruct()
-    supp = supp_add.DistEntry()
+    supp = supp_add.DistEntry(admin.conn)
     supp.button1.configure(command=partial(add_dist_submit, supp))
     supp.button2.configure(command=partial(logout, supp))
     supp.button3.configure(command=partial(admin_trans1, supp))
@@ -227,14 +227,14 @@ def view_trans_range(admin):
     dbase = admin.conn
     admin.destruct()
     trans = view_trans_between.ViewTrans(dbase)
-    trans.run()
     trans.button1.configure(command=partial(admin_trans1, trans))
     trans.button2.configure(command=partial(logout, trans))
+    trans.run()
 
 
 def add_admin(admin):
     admin.destruct()
-    add_admin_form = admin_addition.AdminAddition()
+    add_admin_form = admin_addition.AdminAddition(admin.conn)
     add_form_configure(add_admin_form)
     add_admin_form.run()
 

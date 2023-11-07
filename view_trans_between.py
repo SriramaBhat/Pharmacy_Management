@@ -45,16 +45,6 @@ class ViewTrans:
         button.place(x=x_pos, y=y_pos)
         return button
 
-    def create_view(self):
-        d1 = self.start.get().strip().split("/")
-        d1 = str(d1[2]) + "-" + str(d1[1]) + "-" + str(d1[0])
-        d2 = self.end.get().strip().split("/")
-        d2 = str(d2[2]) + "-" + str(d2[1]) + "-" + str(d2[0])
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM stransactions WHERE  tran_date BETWEEN '" + d1 + "' AND '" + d2 +
-                    "' UNION SELECT * FROM ctransactions " +
-                    "WHERE tran_date BETWEEN '" + d1 + "' AND '" + d2 + "' ;")
-
     def add_treeview(self, height):
         d1 = self.start.get().strip().split("/")
         d1 = str(d1[2]) + "-" + str(d1[1]) + "-" + str(d1[0])
@@ -76,7 +66,7 @@ class ViewTrans:
         stock_tree.heading("#6", text="Trans Amount")
 
         cur = self.conn.cursor()
-        res = cur.execute("SELECT * FROM stransactions UNION SELECT * FROM ctransactions " +
+        res = cur.execute("SELECT * FROM stransactions WHERE tran_date BETWEEN '" + d1 + "' AND '" + d2 + "' UNION SELECT * FROM ctransactions " +
                           "WHERE tran_date BETWEEN '" + d1 + "' AND '" + d2 + "' ;").fetchall()
 
         for i in range(1, len(res)+1):
